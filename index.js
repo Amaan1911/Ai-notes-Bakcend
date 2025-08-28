@@ -2,13 +2,14 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { v4 as uuidv4 } from "uuid"; // npm install uuid
+import { v4 as uuidv4 } from "uuid";
+const PORT = process.env.PORT || 5000;
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize Gemini
+
 let genAI;
 if (process.env.GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -16,7 +17,7 @@ if (process.env.GEMINI_API_KEY) {
 
 let notes = [];
 
-// Summarize note route
+
 app.post("/api/summarize", async (req, res) => {
   const { text } = req.body;
 
@@ -53,7 +54,6 @@ app.post("/api/summarize", async (req, res) => {
     console.error("Gemini error:", err.message);
   }
 
-  // Mock fallback
     const mockSummary = text.split(".")[0] + "...";
     res.json({ summary: mockSummary });
   });
@@ -81,4 +81,4 @@ app.delete("/api/notes/:id", (req, res) => {
 // Test route
 app.get("/", (req, res) => res.send("Notes API server is running!"));
 
-app.listen(5000, () => console.log("Server running on http://localhost:5000"));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
