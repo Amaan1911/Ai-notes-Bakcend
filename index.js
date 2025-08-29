@@ -26,7 +26,7 @@ if (fs.existsSync(NOTES_FILE)) {
   notes = JSON.parse(data);
 }
 
-// 🔹 Helper to save notes to JSON
+
 const saveNotesToFile = () => {
   fs.writeFileSync(NOTES_FILE, JSON.stringify(notes, null, 2));
 };
@@ -43,26 +43,30 @@ app.post("/api/summarize", async (req, res) => {
         contents: [
           {
             role: "user",
-            parts: [{ text: `Summarize the following text in 2–3 concise sentences. Do not copy directly.\n\n${text}` }]
+            parts: [
+              {
+                text: `Summarize the following text concisely in 3–5 sentences. Do not just copy; make it clear and informative.\n\n${text}`
+              }
+            ]
           }
         ]
       });
 
       let summary = result.response.text().trim();
-      if (summary.length > text.length * 0.6) {
-        summary = text.split(".").slice(0, 2).join(".") + "...";
-      }
+
+      
+      if (!summary) summary = text.split(".").slice(0, Math.min(4, text.split(".").length)).join(".") + "...";
+
       return res.json({ summary });
     }
   } catch (err) {
     console.error("Gemini error:", err.message);
   }
 
-  // fallback
-  res.json({ summary: text.split(".")[0] + "..." });
+  const fallbackSummary = text.split(".").slice(0, Math.min(4, text.split(".").length)).join(".") + "...";
+  res.json({ summary: fallbackSummary });
 });
 
-// CRUD routes
 app.post("/api/notes", (req, res) => {
   const { text, tags = [], summary } = req.body;
   const newNote = { id: uuidv4(), text, summary, tags: tags.map(t => t.trim()) };
